@@ -256,17 +256,81 @@ export function doorCrossed(
 }
 
 /** Has this leg already been walked past? */
-function legDone(leg: MazeLeg, here: { x: number; z: number; level: number }): boolean {
+function legDone(
+    leg: MazeLeg,
+    here: { x: number; z: number; level: number },
+    holds: (id: number) => boolean
+): boolean {
     switch (leg.kind) {
         case 'kill':
-            return heldById(leg.keyId);
+            return holds(leg.keyId);
         case 'door':
-            return doorCrossed(leg, here, heldById(leg.keyId));
+            return doorCrossed(leg, here, holds(leg.keyId));
         case 'climb':
-            return here.level === leg.land.level && Math.abs(here.z - leg.land.z) < 100;
+            return inMaze(here) && here.level === leg.land.level && Math.abs(here.z - leg.land.z) < 100;
         case 'chest':
-            return heldById(DS_ID.MAP_MELZAR);
+            return holds(DS_ID.MAP_MELZAR);
     }
+}
+
+/** Which storey of the maze a tile sits on, or `out` if it is not inside. */
+export function mazeFloor(
+    t: { x: number; z: number; level: number }
+): 'out' | 'ground' | 'first' | 'second' | 'cellar' {
+    if (!inMaze(t)) {
+        return 'out';
+    }
+    if (t.z >= 9600) {
+        return 'cellar';
+    }
+    if (t.level >= 2) {
+        return 'second';
+    }
+    if (t.level === 1) {
+        return 'first';
+    }
+    return 'ground';
+}
+
+function legFloor(leg: MazeLeg): ReturnType<typeof mazeFloor> {
+    return mazeFloor(leg.kind === 'kill' ? leg.at : leg.stand);
+}
+
+/**
+ * Which MAZE_LEGS index to run next from position, keys, and a leftover index.
+ * Why: a leftover index from a previous AIOQuester run, a death, or the briefing
+ * at Oziach, must not send the walker at a cellar tile. Melzar's room is only
+ * reachable through the coloured doors, and from Edgeville the navigator tries
+ * the dungeon door at (3070,3515) then reports unreachable.
+ */
+export function mazeLegIndex(
+    here: { x: number; z: number; level: number },
+    holds: (id: number) => boolean,
+    persisted: number
+): number {
+    if (!inMaze(here)) {
+        return 0;
+    }
+    const floor = mazeFloor(here);
+    const keyLeg = MAZE_LEGS.findIndex(
+        l => l.kind === 'door' && l.keyId !== DS_ID.MAZE_KEY && holds(l.keyId)
+    );
+    let index: number;
+    if (keyLeg >= 0 && legFloor(MAZE_LEGS[keyLeg]) === floor) {
+        index = keyLeg;
+    } else if (
+        persisted >= 0
+        && persisted < MAZE_LEGS.length
+        && legFloor(MAZE_LEGS[persisted]) === floor
+    ) {
+        index = persisted;
+    } else {
+        index = legFromPosition(here);
+    }
+    while (index < MAZE_LEGS.length && legDone(MAZE_LEGS[index], here, holds)) {
+        index++;
+    }
+    return index;
 }
 
 // Why: Melzar's Maze is one-way, every ladder in is broken from below and every coloured key is spent.
@@ -344,16 +408,15 @@ export class MazeRun {
         }
         // Why: a coloured key in the pack exists only between its kill and its door, so it re-syncs the route after any interruption.
         // Why: the maze key is no such marker, as it is kept for the quest.
-        const keyLeg = MAZE_LEGS.findIndex(l => l.kind === 'door' && l.keyId !== DS_ID.MAZE_KEY && heldById(l.keyId));
-        if (keyLeg >= 0) {
-            this.index = keyLeg;
-        } else if (this.index < 0) {
-            this.index = legFromPosition(here);
-            log(`picking the maze up at leg ${this.index}`);
+        // Why: MazeRun is a module singleton, so this.index survives AIOQuester stop/start.
+        // Why: if that leftover points at Melzar while the player is at Oziach, the walker aims at (2929,9649) and stops at the Edgeville dungeon door.
+        const next = mazeLegIndex(here, heldById, this.index);
+        if (this.index < 0) {
+            log(`picking the maze up at leg ${next}`);
+        } else if (!inMaze(here) && this.index > 0) {
+            log('outside the maze, restarting from the front door');
         }
-        while (this.index < MAZE_LEGS.length && legDone(MAZE_LEGS[this.index], here)) {
-            this.index++;
-        }
+        this.index = next;
         if (this.index >= MAZE_LEGS.length) {
             return heldById(DS_ID.MAP_MELZAR);
         }
