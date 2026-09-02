@@ -97,11 +97,13 @@ export function legFromPosition(t: { x: number; z: number; level: number }): num
         return 7;
     }
     if (t.level === 1) {
-        return 4;
+        // Why: the yellow-door descent lands in a sealed south-east room, not the ghost hall.
+        // Why: treating all of L1 as the ghost walk aims at (2929,3249) through the closed door at (2938,3244).
+        return inDescentPocket(t) ? 10 : 4;
     }
     // The two ground-floor pockets: the entrance hall, and the dead-end the
     // descent from the second floor drops into.
-    if (t.z <= 3242 && t.x >= 2929) {
+    if (inDescentPocket(t)) {
         return 11;
     }
     return inMaze(t) ? 1 : 0;
@@ -267,16 +269,22 @@ function legDone(
         case 'door':
             return doorCrossed(leg, here, holds(leg.keyId));
         case 'climb':
-            return inMaze(here) && here.level === leg.land.level && Math.abs(here.z - leg.land.z) < 100;
+            return inMaze(here) && here.level === leg.land.level && Math.abs(here.z - leg.land.z) < 100
+                && mazeFloor(here) === mazeFloor(leg.land);
         case 'chest':
             return holds(DS_ID.MAP_MELZAR);
     }
 }
 
+// Why: the yellow-door descent lands in this south-east pocket on L1, then the pit under it on the ground; both are sealed from the ghost hall and the entrance.
+function inDescentPocket(t: { x: number; z: number; level: number }): boolean {
+    return t.level <= 1 && t.z < 9000 && t.z <= 3242 && t.x >= 2929;
+}
+
 /** Which storey of the maze a tile sits on, or `out` if it is not inside. */
 export function mazeFloor(
     t: { x: number; z: number; level: number }
-): 'out' | 'ground' | 'first' | 'second' | 'drop' | 'cellar' {
+): 'out' | 'ground' | 'first' | 'second' | 'drop1' | 'drop' | 'cellar' {
     if (!inMaze(t)) {
         return 'out';
     }
@@ -287,10 +295,9 @@ export function mazeFloor(
         return 'second';
     }
     if (t.level === 1) {
-        return 'first';
+        return inDescentPocket(t) ? 'drop1' : 'first';
     }
-    // The dead-end the second-floor descent drops into, sealed from the entrance hall.
-    if (t.z <= 3242 && t.x >= 2929) {
+    if (inDescentPocket(t)) {
         return 'drop';
     }
     return 'ground';

@@ -95,6 +95,14 @@ describe("Melzar's Maze route", () => {
         expect(legFromPosition({ x: 2911, z: 4832, level: 0 })).toBe(0);
         // The dead end the second-floor descent drops into, not the entrance hall.
         expect(MAZE_LEGS[legFromPosition({ x: 2936, z: 3240, level: 0 })]).toMatchObject({ kind: 'climb', op: 'Climb-down' });
+        // The L1 landing of that same descent, not the ghost hall on this floor.
+        expect(legFromPosition({ x: 2939, z: 3240, level: 1 })).toBe(10);
+        expect(MAZE_LEGS[10]).toMatchObject({ kind: 'climb', op: 'Climb-down' });
+        const l1Down = MAZE_LEGS[10];
+        expect(l1Down.kind).toBe('climb');
+        if (l1Down.kind === 'climb') {
+            expect(l1Down.land.level).toBe(0);
+        }
     });
 
     test('Oziach and Edgeville never resume on a cellar kill', () => {
@@ -137,6 +145,20 @@ describe("Melzar's Maze route", () => {
         expect(mazeFloor(drop)).toBe('drop');
         expect(mazeLegIndex(drop, none, 1)).toBe(11);
         expect(MAZE_LEGS[11]).toMatchObject({ kind: 'climb', op: 'Climb-down' });
+    });
+
+    test('the first-floor drop pocket does not resume on the ghost', () => {
+        // Why: the live failure at (2939,3240,L1) walked at the ghost (2927,3247) through the closed door at (2938,3244).
+        const none = (): boolean => false;
+        const drop1 = { x: 2939, z: 3240, level: 1 };
+        expect(mazeFloor(drop1)).toBe('drop1');
+        expect(mazeLegIndex(drop1, none, 4)).toBe(10);
+        expect(mazeLegIndex(drop1, none, 9)).toBe(10);
+        expect(mazeLegIndex(drop1, none, -1)).toBe(10);
+        expect(MAZE_LEGS[10]).toMatchObject({ kind: 'climb', op: 'Climb-down' });
+        const ghost = { x: 2929, z: 3250, level: 1 };
+        expect(mazeFloor(ghost)).toBe('first');
+        expect(mazeLegIndex(ghost, none, 10)).toBe(4);
     });
 });
 
