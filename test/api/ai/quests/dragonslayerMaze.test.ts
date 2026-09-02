@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
 import { DS_ID, DS_LOC } from '#/bot/api/ai/quests/defs/dragonslayer/areas.js';
-import { MAZE_LEGS, MAZE_NPC, doorCrossed, inMaze, legFromPosition } from '#/bot/api/ai/quests/defs/dragonslayer/maze.js';
+import { MAZE_LEGS, MAZE_NPC, doorCrossed, inMaze, legFromPosition, mazeFloor, mazeLegIndex } from '#/bot/api/ai/quests/defs/dragonslayer/maze.js';
 import { OZIACH_GOALS } from '#/bot/api/ai/quests/defs/dragonslayer/index.js';
 
 describe("Melzar's Maze route", () => {
@@ -95,6 +95,39 @@ describe("Melzar's Maze route", () => {
         expect(legFromPosition({ x: 2911, z: 4832, level: 0 })).toBe(0);
         // The dead end the second-floor descent drops into, not the entrance hall.
         expect(MAZE_LEGS[legFromPosition({ x: 2936, z: 3240, level: 0 })]).toMatchObject({ kind: 'climb', op: 'Climb-down' });
+    });
+
+    test('Oziach and Edgeville never resume on a cellar kill', () => {
+        // Why: the live failure walked from (3068,3518) to (2929,9649) because MazeRun kept a leftover Melzar index after the briefing.
+        const none = (): boolean => false;
+        const oziach = { x: 3068, z: 3518, level: 0 };
+        const melzarKill = MAZE_LEGS.findIndex(l => l.kind === 'kill' && l.npcId === MAZE_NPC.MELZAR);
+        expect(melzarKill).toBeGreaterThan(0);
+        expect(mazeLegIndex(oziach, none, melzarKill)).toBe(0);
+        expect(mazeLegIndex(oziach, none, -1)).toBe(0);
+        expect(MAZE_LEGS[0]).toMatchObject({ kind: 'door', keyId: DS_ID.MAZE_KEY });
+    });
+
+    test('a leftover magenta key outside the maze does not skip to the cellar door', () => {
+        const holds = (id: number): boolean => id === DS_ID.MAGENTA_KEY;
+        expect(mazeLegIndex({ x: 3068, z: 3518, level: 0 }, holds, -1)).toBe(0);
+        expect(mazeLegIndex({ x: 2941, z: 3248, level: 0 }, holds, 14)).toBe(0);
+    });
+
+    test('inside the cellar a magenta key still resumes at its door', () => {
+        const holds = (id: number): boolean => id === DS_ID.MAGENTA_KEY;
+        const magenta = MAZE_LEGS.findIndex(l => l.kind === 'door' && l.keyId === DS_ID.MAGENTA_KEY);
+        expect(mazeLegIndex({ x: 2929, z: 9649, level: 0 }, holds, -1)).toBe(magenta);
+        expect(mazeFloor({ x: 2929, z: 9649, level: 0 })).toBe('cellar');
+        expect(mazeFloor({ x: 3068, z: 3518, level: 0 })).toBe('out');
+    });
+
+    test('re-entering the ground floor drops a leftover cellar index', () => {
+        const none = (): boolean => false;
+        const hall = { x: 2935, z: 3250, level: 0 };
+        const melzarKill = MAZE_LEGS.findIndex(l => l.kind === 'kill' && l.npcId === MAZE_NPC.MELZAR);
+        expect(mazeLegIndex(hall, none, melzarKill)).toBe(1);
+        expect(MAZE_LEGS[1]).toMatchObject({ kind: 'kill', npcId: MAZE_NPC.GIANT_RAT });
     });
 });
 
