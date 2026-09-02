@@ -129,6 +129,15 @@ describe("Melzar's Maze route", () => {
         expect(mazeLegIndex(hall, none, melzarKill)).toBe(1);
         expect(MAZE_LEGS[1]).toMatchObject({ kind: 'kill', npcId: MAZE_NPC.GIANT_RAT });
     });
+
+    test('the drop pocket does not resume on the entrance-hall rat', () => {
+        // Why: (2936,3241) is the sealed ground-floor landing, and a leftover rat index walks at a hall it cannot reach.
+        const none = (): boolean => false;
+        const drop = { x: 2936, z: 3241, level: 0 };
+        expect(mazeFloor(drop)).toBe('drop');
+        expect(mazeLegIndex(drop, none, 1)).toBe(11);
+        expect(MAZE_LEGS[11]).toMatchObject({ kind: 'climb', op: 'Climb-down' });
+    });
 });
 
 describe('the Crandor secret wall', () => {
