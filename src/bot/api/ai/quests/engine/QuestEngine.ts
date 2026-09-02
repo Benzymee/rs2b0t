@@ -239,7 +239,7 @@ export class QuestEngine implements Task {
             return;
         }
 
-        if (module.ownsInventory) {
+        if (module.ownsInventory || module.bankless?.(snap)) {
             // Some quests have one-way, bankless areas. Their stage oracle must run before any
             // generic attempt to bank spillover or provision items on the mainland.
             this.deposited.add(id);
@@ -672,6 +672,7 @@ export class QuestEngine implements Task {
             tile: Game.tile(),
             prayer: Skills.effective('prayer'),
             attack: Skills.level('attack'),
+            ranged: Skills.level('ranged'),
             freeSlots: Inventory.free()
         };
     }
