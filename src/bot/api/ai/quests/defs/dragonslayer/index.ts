@@ -686,10 +686,12 @@ export function decide(snap: QuestSnapshot): QuestStep {
         if (aboard(snap.tile)) {
             return custom('go ashore', leaveShip);
         }
-        // The maze is one-way in; with the piece in hand nothing else can start
-        // until the bot has walked itself back out.
-        if (inMaze(snap.tile) && anywhere(snap, DS_ID.MAP_MELZAR)) {
-            return custom("walk out of Melzar's Maze", leaveMaze);
+        // Why: the maze is one-way, so a missing maze key or an unread bank must not scan Falador west from a pocket that cannot walk there.
+        if (inMaze(snap.tile)) {
+            if (anywhere(snap, DS_ID.MAP_MELZAR)) {
+                return custom("walk out of Melzar's Maze", leaveMaze);
+            }
+            return custom("Melzar's Maze", log => maze.step(log));
         }
         // Why: Oziach sets the three briefing flags and hands over the maze key across several dialogue branches, so this keeps returning until they are all set.
         // Why: a banked or unseen-bank key must not thrash Oziach, as he will not re-issue it, scan and withdraw first, and treat only an absent key as nowhere (#379).
@@ -830,6 +832,8 @@ export const dragonslayer: QuestModule = {
     // Port Sarim, Falador, Varrock, the wilderness, Karamja: no one bank is near
     // enough to this quest to be worth walking back to.
     bank: 'nearest',
+    // Why: a spillover deposit from inside the maze walks at Falador west, which that pocket cannot reach.
+    bankless: snap => inMaze(snap.tile) || aboard(snap.tile) || onCrandor(snap.tile),
     grind: ['Giant rat', 'Ghost', 'Skeleton', 'Zombie', 'Melzar the mad', 'Lesser demon', 'Elvarg'],
     // Why: the nails leg is the tightest the pack ever gets. It keeps coins, pickaxe, hammer and the maze key, then mines eighteen slots of ore on top.
     // Why: six lunches made that twenty-eight, and at twenty-eight every pickup and every purchase fails silently.

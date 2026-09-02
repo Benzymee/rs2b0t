@@ -276,7 +276,7 @@ function legDone(
 /** Which storey of the maze a tile sits on, or `out` if it is not inside. */
 export function mazeFloor(
     t: { x: number; z: number; level: number }
-): 'out' | 'ground' | 'first' | 'second' | 'cellar' {
+): 'out' | 'ground' | 'first' | 'second' | 'drop' | 'cellar' {
     if (!inMaze(t)) {
         return 'out';
     }
@@ -288,6 +288,10 @@ export function mazeFloor(
     }
     if (t.level === 1) {
         return 'first';
+    }
+    // The dead-end the second-floor descent drops into, sealed from the entrance hall.
+    if (t.z <= 3242 && t.x >= 2929) {
+        return 'drop';
     }
     return 'ground';
 }

@@ -50,6 +50,8 @@ export interface QuestSnapshot {
     prayer?: number;
     /** Attack level, which is the tier of melee weapon the account can wield. */
     attack?: number;
+    /** Ranged level, which is the tier of bow the account can wield. */
+    ranged?: number;
     freeSlots?: number;
 }
 
@@ -116,6 +118,9 @@ export interface QuestModule {
     exit?: (log: (m: string) => void) => Promise<boolean>;
     /** The module owns all banking/loadout decisions, including restarts in bankless areas. */
     ownsInventory?: boolean;
+    // Why: Melzar's Maze, Crandor and similar pockets have no walkable bank, and a spillover deposit from inside them walks at the nearest booth and reports unreachable.
+    /** True on tiles with no walkable bank. The engine skips deposit and provision this pass. */
+    bankless?: (snap: QuestSnapshot) => boolean;
     // Why: food is the bulkiest withdrawal a quest makes, so a module that arms itself from the bank has to be dressed before the pack fills, or the gear has nowhere to land.
     /** False to hold the food float back this pass; absent means withdraw it as soon as the bank is known. */
     foodReady?: (snap: QuestSnapshot) => boolean;

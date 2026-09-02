@@ -45,8 +45,9 @@ async function reachableBank(from: WorldTile, log: (m: string) => void): Promise
     if (best) {
         return best.tile;
     }
-    log(`no bank answered a path from (${from.x},${from.z}), trying the closest anyway`);
-    return candidates[0]?.tile;
+    // Why: the closest booth by air can sit behind a one-way door. From Melzar's Maze that is Falador west, and walking there never arrives.
+    log(`no reachable bank from (${from.x},${from.z})`);
+    return undefined;
 }
 
 export async function openBankLeg(noBankMsg: string, override: Tile | undefined, log: (m: string) => void): Promise<boolean> {
