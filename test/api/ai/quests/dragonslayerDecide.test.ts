@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
 import { DS_ID, DS_ITEM } from '#/bot/api/ai/quests/defs/dragonslayer/areas.js';
-import { decide } from '#/bot/api/ai/quests/defs/dragonslayer/index.js';
+import { decide, dragonslayer } from '#/bot/api/ai/quests/defs/dragonslayer/index.js';
 import { DRAGON_STAGE } from '#/bot/api/ai/quests/defs/dragonslayer/journal.js';
 import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
 
@@ -93,6 +93,31 @@ describe('Dragon Slayer decide()', () => {
             const step = decide(snapshot(held));
             expect((step as { name: string }).name).toContain("Melzar's Maze");
         }
+    });
+
+    test('inside the maze the engine must not scan Falador from a sealed pocket', () => {
+        // Why: the live failure at (2936,3241) scanned the bank, then walked at Falador west (2946,3369), which that drop pocket cannot reach.
+        const drop = { x: 2936, z: 3241, level: 0 };
+        const unnamed = decide(snapshot({
+            bankKnown: false,
+            carried: [],
+            tile: drop
+        }));
+        expect((unnamed as { name: string }).name).toContain("Melzar's Maze");
+        expect(unnamed.kind).not.toBe('scanBank');
+        expect(unnamed.kind).not.toBe('withdraw');
+
+        const keyed = decide(snapshot({ carried: [DS_ID.MAZE_KEY], tile: drop }));
+        expect((keyed as { name: string }).name).toContain("Melzar's Maze");
+
+        const leaving = decide(snapshot({
+            carried: [DS_ID.MAZE_KEY, DS_ID.MAP_MELZAR],
+            tile: drop
+        }));
+        expect((leaving as { name: string }).name).toContain('walk out');
+
+        expect(dragonslayer.bankless?.(snapshot({ tile: drop }))).toBe(true);
+        expect(dragonslayer.bankless?.(snapshot())).toBe(false);
     });
 
     test('the shield is asked of the Duke once the map is whole', () => {
