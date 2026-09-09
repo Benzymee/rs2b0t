@@ -5,7 +5,7 @@
 
 # Bundled scripts
 
-- Scripts: 60. Categories: 20.
+- Scripts: 61. Categories: 20.
 - Source: [`src/bot/scripts/`](../src/bot/scripts/). API: [scripting API](API.md).
 - Settings are the parameters the panel exposes before a script starts.
 
@@ -25,7 +25,7 @@
 - [Navigation](#navigation) — 2
 - [Prayer](#prayer) — 1
 - [Quest](#quest) — 3
-- [Runecrafting](#runecrafting) — 3
+- [Runecrafting](#runecrafting) — 4
 - [Smithing](#smithing) — 3
 - [Thieving](#thieving) — 3
 - [Treasure Trails](#treasure-trails) — 1
@@ -873,6 +873,18 @@ AIO Runecrafting (Air/Earth) — Solo banks its own essence and crafts at the al
 | Setting | Type | Default | Notes |
 |---|---|---|---|
 | `rune` | string | `"Air runes"` | Rune — one of: Air runes, Earth runes |
+| `mode` | string | `"Solo"` | Mode — one of: Solo, Runner, Mule Recipient |
+| `partner` | string | `""` | Trade essence to (IGN) |
+
+### SuperRuneCrafter
+
+AIO Runecrafting (all 2004 altars except Nature). Best picks the highest rune your level and talismans allow. Cosmic banks at the Zanaris fairy bankers (Lost City + wielded Dramen staff at the swamp shed) and walks the recorded pin path to the ruins.
+
+- Tags: `runecrafting`, `banking`, `trade`, `runner`, `mule`, `zanaris`, `cosmic`
+
+| Setting | Type | Default | Notes |
+|---|---|---|---|
+| `rune` | string | `"Best"` | Rune — one of: Best, Air runes, Mind runes, Water runes, Earth runes, Fire runes, Body runes, Cosmic runes, Chaos runes, Law runes |
 | `mode` | string | `"Solo"` | Mode — one of: Solo, Runner, Mule Recipient |
 | `partner` | string | `""` | Trade essence to (IGN) |
 

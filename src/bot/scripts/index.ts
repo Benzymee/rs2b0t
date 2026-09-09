@@ -62,6 +62,7 @@ import GemCutter, { GEM_CUTTER_SETTINGS } from './GemCutter/GemCutter.js';
 import EssMiner, { SETTINGS as ESSMINER_SETTINGS } from './EssMiner/EssMiner.js';
 import CoalTrucks from './CoalTrucks/CoalTrucks.js';
 import RuneCrafter, { SETTINGS as RUNECRAFTER_SETTINGS } from './RuneCrafter/RuneCrafter.js';
+import SuperRuneCrafter, { SETTINGS as SUPER_RUNECRAFTER_SETTINGS } from './SuperRuneCrafter/SuperRuneCrafter.js';
 import NatureCrafter, { SETTINGS as NATURECRAFTER_SETTINGS } from './NatureCrafter/NatureCrafter.js';
 import MuleCrafter, { SETTINGS as MULECRAFTER_SETTINGS } from './MuleCrafter/MuleCrafter.js';
 import RoguesPurse from './RoguesPurse/RoguesPurse.js';
@@ -329,6 +330,15 @@ ScriptRegistry.register({
     tags: ['runecrafting', 'banking', 'trade', 'runner', 'mule', 'afk'],
     settingsSchema: RUNECRAFTER_SETTINGS,
     create: () => new RuneCrafter()
+});
+
+ScriptRegistry.register({
+    name: 'SuperRuneCrafter',
+    description: 'AIO Runecrafting (all 2004 altars except Nature). Best picks the highest rune your level and talismans allow. Cosmic banks at the Zanaris fairy bankers (Lost City + wielded Dramen staff at the swamp shed) and walks the recorded pin path to the ruins.',
+    category: 'Runecrafting',
+    tags: ['runecrafting', 'banking', 'trade', 'runner', 'mule', 'zanaris', 'cosmic'],
+    settingsSchema: SUPER_RUNECRAFTER_SETTINGS,
+    create: () => new SuperRuneCrafter()
 });
 
 ScriptRegistry.register({
