@@ -719,7 +719,7 @@ export default class SuperRuneCrafter extends TaskBot {
         return true;
     }
 
-    /** Shed teleports only while Dramen is wielded — never walk there with it sitting in the pack. */
+    /** Shed teleports only while Dramen is wielded. Never walk there with it sitting in the pack. */
     private async wieldDramenStaff(): Promise<boolean> {
         if (Equipment.contains(DRAMEN_STAFF)) {
             return true;
