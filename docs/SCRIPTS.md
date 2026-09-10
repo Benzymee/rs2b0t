@@ -904,7 +904,7 @@ Varrock anvil smithing — withdraw bars + a hammer, make the chosen item at the
 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
-| `bar` | string | `"Bronze"` | Bar tier — one of: Bronze, Iron, Steel, Mithril, Adamant, Rune |
+| `bar` | string | `"Bronze"` | Bar tier — one of: Bronze, Iron, Steel, Mithril, Adamantite, Runite |
 | `product` | string | `"Dagger"` | Item to smith — one of: Dagger, Sword, Scimitar, Longsword, 2h sword, Axe, Mace, Warhammer, Battleaxe, Chainbody, Platelegs, Plateskirt, Platebody, Med helm, Full helm, Sq shield, Kiteshield, Nails, Dart tip, Arrowtips, Knife, Wire, Claws |
 | `anvilStand` | tile | `{"x":3188,"z":3425,"level":0}` | Anvil stand tile (x,z) |
 | `bankStand` | tile | `{"x":3185,"z":3440,"level":0}` | Bank stand tile (x,z) |
